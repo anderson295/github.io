@@ -12,6 +12,7 @@
             --gold-accent: #FFD700;
             --text-color: #555;
             --white: #ffffff;
+            --success-green: #98FB98;
         }
 
         body {
@@ -111,11 +112,6 @@
             flex: 1;
         }
 
-        .mickey-icon {
-            font-size: 1.5rem;
-            margin-right: 10px;
-        }
-
         .tips {
             background-color: #F0F8FF;
             padding: 15px;
@@ -124,26 +120,70 @@
             margin-top: 10px;
             border-left: 5px solid var(--magic-blue);
         }
-        
+
+        /* Search Box Style */
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--magic-blue);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .search-box:focus {
+            border-color: var(--primary-pink);
+        }
+
         /* Map List Style */
         .map-list {
             list-style: none;
             padding: 0;
         }
-        .map-list li {
-            margin-bottom: 10px;
-            padding-bottom: 10px;
+        .map-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
             border-bottom: 1px dashed #eee;
+            display: block; /* For JS toggling */
         }
         .map-tag {
             background: #eee;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            margin-right: 5px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin-right: 8px;
+            font-weight: bold;
         }
         .tag-gacha { background: #ffe4e1; color: #d63384; }
         .tag-anime { background: #e0f7fa; color: #00838f; }
+
+        /* Accounting Table Style */
+        .budget-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        .budget-table th, .budget-table td {
+            border: 1px solid #eee;
+            padding: 10px;
+            text-align: left;
+        }
+        .budget-table th {
+            background-color: #fff0f5;
+            color: var(--text-color);
+        }
+        .budget-table tr:nth-child(even) {
+            background-color: #fcfcfc;
+        }
+        .amount-col {
+            width: 80px;
+            text-align: right;
+            color: var(--primary-pink);
+            font-weight: bold;
+        }
 
         footer {
             text-align: center;
@@ -152,6 +192,25 @@
             font-size: 0.9rem;
         }
     </style>
+    <script>
+        function filterMap() {
+            // 簡單的搜尋功能
+            var input, filter, ul, li, i, txtValue;
+            input = document.getElementById('mapSearch');
+            filter = input.value.toUpperCase();
+            ul = document.getElementById("mapList");
+            li = ul.getElementsByClassName('map-item');
+
+            for (i = 0; i < li.length; i++) {
+                txtValue = li[i].textContent || li[i].innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    li[i].style.display = "";
+                } else {
+                    li[i].style.display = "none";
+                }
+            }
+        }
+    </script>
 </head>
 <body>
 
@@ -167,12 +226,12 @@
         <h3 style="text-align: center;">✈️ 幸福啟程 & 溫馨小窩</h3>
         <p><strong>💖 我們的航班 (China Airlines)：</strong></p>
         <ul>
-            <li>去程 (12/10): CI126 高雄 13:05 ➔ 東京成田 17:25 </li>
-            <li>回程 (12/16): CI127 東京成田 18:25 ➔ 高雄 22:05 </li>
+            [cite_start]<li>去程 (12/10): CI126 高雄 13:05 ➔ 東京成田 17:25 [cite: 28]</li>
+            [cite_start]<li>回程 (12/16): CI127 東京成田 18:25 ➔ 高雄 22:05 [cite: 28]</li>
         </ul>
         <p><strong>🏠 甜蜜基地：</strong></p>
         <ul>
-            <li>地點：瑞索爾秋葉原飯店 (Hotel Resol Akihabara) </li>
+            [cite_start]<li>地點：瑞索爾秋葉原飯店 (Hotel Resol Akihabara) [cite: 28]</li>
             <li>備註：位於秋葉原中心，交通超方便！</li>
         </ul>
     </div>
@@ -187,40 +246,31 @@
         </div>
         <div class="itinerary-item">
             <span class="time">18:40</span>
-            <div class="content">搭乘帥氣的 <strong>Keisei Skyliner</strong> 直奔市區。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">19:37</span>
-            <div class="content">入住飯店，放好行李。</div>
+            [cite_start]<div class="content">搭乘 <strong>Keisei Skyliner</strong> 直奔市區 [cite: 29]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">20:30</span>
-            <div class="content">夜遊上野阿美橫町，感受熱鬧氣氛與藥妝店尋寶。</div>
+            [cite_start]<div class="content">夜遊上野阿美橫町，藥妝店尋寶 [cite: 30]。</div>
         </div>
     </div>
 
     <div class="card" style="border-color: #FFD700; background: #fffdf0;">
         <span class="date-badge" style="background: #FFD700;">Day 2 (12/11)</span> <span class="highlight">魔法王國：迪士尼全日夢幻</span>
-        <p>✨ 重點任務：體驗從早到晚的完整魔法！</p>
         <div class="itinerary-item">
             <span class="time">08:00</span>
-            <div class="content">入園衝刺！用 App 搶「美女與野獸」DPA，這是一定要和你一起看的浪漫城堡。</div>
+            [cite_start]<div class="content">入園衝刺！App 搶「美女與野獸」DPA [cite: 31]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">13:00</span>
-            <div class="content">觀賞日間遊行「迪士尼眾彩交融」。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">下午</span>
-            <div class="content">一起吃三眼怪麻糬、煙燻火雞腿。</div>
+            [cite_start]<div class="content">日間遊行「迪士尼眾彩交融」 [cite: 32]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">19:15</span>
-            <div class="content">夜間電子大遊行「夢之光」，點亮我們的夜晚。</div>
+            [cite_start]<div class="content">夜間電子大遊行「夢之光」 [cite: 33]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">20:30</span>
-            <div class="content">城堡煙火秀「迪士尼炫彩夜空」，為這一天畫下完美句點 🎆 。</div>
+            <div class="content">城堡煙火秀「迪士尼炫彩夜空」。</div>
         </div>
     </div>
 
@@ -228,15 +278,15 @@
         <span class="date-badge">Day 3 (12/12)</span> <span class="highlight">下町暮光：晴空塔聖誕夜</span>
         <div class="itinerary-item">
             <span class="time">早晨</span>
-            <div class="content">參拜神田神社、被官稻荷神社，祈求好運。</div>
+            [cite_start]<div class="content">參拜神田神社、被官稻荷神社 [cite: 34]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">午間</span>
-            <div class="content">漫步淺草寺，在仲見世通吃炸肉餅。</div>
+            [cite_start]<div class="content">淺草寺、仲見世通炸肉餅 [cite: 34]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">18:15</span>
-            <div class="content"><strong>重頭戲：晴空塔「夢幻聖誕2025」</strong> 🎄<br>一起逛德國風聖誕市集喝熱紅酒，欣賞4樓廣場的光雕投影秀。</div>
+            [cite_start]<div class="content"><strong>晴空塔「夢幻聖誕2025」</strong> 🎄 聖誕市集與光雕秀 [cite: 35]。</div>
         </div>
     </div>
 
@@ -244,31 +294,31 @@
         <span class="date-badge">Day 4 (12/13)</span> <span class="highlight">帝都印記：命運的紅線</span>
         <div class="itinerary-item">
             <span class="time">上午</span>
-            <div class="content">散步皇居東御苑，享受皇家花園的寧靜。</div>
+            [cite_start]<div class="content">皇居東御苑散步 [cite: 35]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">午後</span>
-            <div class="content">尋找《你的名字。》場景，在東京車站感受電影裡的時空交錯。</div>
+            [cite_start]<div class="content">東京車站巡禮，《你的名字。》場景 [cite: 36]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">晚間</span>
-            <div class="content"><strong>丸之內彩燈節</strong> ✨<br>120萬顆香檳金 LED 燈海，這是東京最浪漫的金色大道。</div>
+            [cite_start]<div class="content"><strong>丸之內彩燈節</strong> ✨ 120萬顆香檳金燈海 [cite: 36]。</div>
         </div>
     </div>
 
     <div class="card">
-        <span class="date-badge">Day 5 (12/14)</span> <span class="highlight">都會畫布：藍色燈海與名場景</span>
+        <span class="date-badge">Day 5 (12/14)</span> <span class="highlight">都會畫布：藍色燈海</span>
         <div class="itinerary-item">
             <span class="time">全日</span>
-            <div class="content">巡禮《你的名字。》：須賀神社階梯（那個回眸！）、信濃町天橋 。</div>
+            [cite_start]<div class="content">《你的名字。》巡禮：須賀神社階梯、信濃町天橋 [cite: 37]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">17:30</span>
-            <div class="content">東京都廳光雕投影秀 (TOKYO Night & Light)。</div>
+            [cite_start]<div class="content">東京都廳光雕投影秀 [cite: 37]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">夜晚</span>
-            <div class="content"><strong>青之洞窟 SHIBUYA</strong> 💙<br>漫步在代代木公園到澀谷的藍色銀河隧道中。</div>
+            [cite_start]<div class="content"><strong>青之洞窟 SHIBUYA</strong> 💙 代代木公園燈海 [cite: 38]。</div>
         </div>
     </div>
 
@@ -276,75 +326,147 @@
         <span class="date-badge">Day 6 (12/15)</span> <span class="highlight">貓緣奇遇：招福與奢華夜景</span>
         <div class="itinerary-item">
             <span class="time">07:45</span>
-            <div class="content">前往豪德寺，被滿滿的招福貓療癒 (聽說能招來良緣喔) 🐱。</div>
+            [cite_start]<div class="content">豪德寺招福貓 [cite: 39]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">上午</span>
-            <div class="content">世田谷百年市集 (Boro-ichi)，一起在跳蚤市場尋寶。</div>
+            [cite_start]<div class="content">世田谷百年市集 (Boro-ichi) 跳蚤市場 [cite: 39]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">晚間</span>
-            <div class="content">六本木之夜：欣賞櫸木坂 SNOW & BLUE 燈飾，以及東京中城的夢幻光影花園。</div>
+            [cite_start]<div class="content">六本木之夜：櫸木坂燈飾、東京中城 [cite: 39]。</div>
         </div>
     </div>
 
     <div class="card">
-        <span class="date-badge">Day 7 (12/16)</span> <span class="highlight">滿載而歸：最後的衝刺</span>
+        <span class="date-badge">Day 7 (12/16)</span> <span class="highlight">滿載而歸</span>
         <div class="itinerary-item">
             <span class="time">上午</span>
-            <div class="content">秋葉原與上野最後採購！唐吉訶德、Yamashiroya 玩具店掃貨。</div>
+            [cite_start]<div class="content">秋葉原/上野最後採購 (唐吉訶德、Yamashiroya) [cite: 40]。</div>
         </div>
         <div class="itinerary-item">
             <span class="time">14:50</span>
-            <div class="content">抵達成田機場，去 Nintendo Check In 區域拍照留念。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">18:25</span>
-            <div class="content">搭機返航，帶著滿滿的回憶回家。</div>
+            [cite_start]<div class="content">成田機場 Nintendo Check In 拍照 [cite: 41]。</div>
         </div>
     </div>
 
     <div class="card" style="border: 2px dashed var(--primary-pink);">
         <h3 style="text-align: center;">🗺️ 尋寶地圖：扭蛋與動漫聖地</h3>
-        <p style="text-align: center; font-size: 0.9rem;">這些地方就在我們行程附近，隨時可以衝！</p>
+        <p style="text-align: center; font-size: 0.9rem;">輸入關鍵字 (如：秋葉原、扭蛋) 快速找點！</p>
         
-        <ul class="map-list">
-            <li>
-                <strong>📍 秋葉原 (我們的基地)</strong><br>
-                <span class="map-tag tag-gacha">扭蛋</span> <strong>Akihabara Gachapon Kaikan (ガチャポン会館)：</strong> 扭蛋聖地，約400台機器，氣氛超復古。<br>
-                <span class="map-tag tag-gacha">扭蛋</span> <strong>Gashapon Department Store (Namco 4F)：</strong> 機器較新，就在飯店附近。<br>
-                <span class="map-tag tag-anime">動漫</span> <strong>Animate 秋葉原本館：</strong> 就在中央通，周邊商品最齊全。
+        <input type="text" id="mapSearch" onkeyup="filterMap()" placeholder="🔍 搜尋地點或類型..." class="search-box">
+
+        <ul class="map-list" id="mapList">
+            <li class="map-item">
+                <span class="map-tag tag-gacha">扭蛋</span>
+                <strong>Akihabara Gachapon Kaikan (ガチャポン会館)</strong> - 秋葉原<br>
+                <small>扭蛋聖地，約400台機器，氣氛超復古。就在我們飯店附近！</small>
             </li>
-            <li>
-                <strong>📍 東京車站 (Day 4)</strong><br>
-                <span class="map-tag tag-gacha">扭蛋</span> <strong>Tokyo Gashapon Street (東京一番街 B1)：</strong> 專門的扭蛋街，種類超多。<br>
-                <span class="map-tag tag-anime">動漫</span> <strong>Tokyo Character Street：</strong> 吉卜力、寶可夢、Jump Shop 都在這一條街。
+            <li class="map-item">
+                <span class="map-tag tag-gacha">扭蛋</span>
+                <strong>Gashapon Department Store (Namco 4F)</strong> - 秋葉原<br>
+                <small>機器較新，環境舒適，適合晚上去逛。</small>
             </li>
-            <li>
-                <strong>📍 澀谷 & 新宿 (Day 5)</strong><br>
-                <span class="map-tag tag-anime">動漫</span> <strong>Shibuya PARCO (6F)：</strong> 任天堂旗艦店 (Nintendo TOKYO)、寶可夢中心、Jump Shop。<br>
-                <span class="map-tag tag-gacha">扭蛋</span> <strong>#C-pla 澀谷中心街：</strong> 澀谷的大型扭蛋專賣店。<br>
-                <span class="map-tag tag-gacha">扭蛋</span> <strong>Gachagacha no Mori (新宿 Subnade)：</strong> 新宿東口地下街，超過1000台。
+            <li class="map-item">
+                <span class="map-tag tag-anime">動漫</span>
+                <strong>Animate 秋葉原本館</strong> - 秋葉原<br>
+                <small>就在中央通，周邊商品最齊全。</small>
             </li>
-            <li>
-                <strong>📍 池袋 (Day 7 備案 / 究極聖地)</strong><br>
-                <span class="map-tag tag-gacha">扭蛋</span> <strong>Gashapon Department Store (Sunshine City)：</strong> 金氏世界紀錄認證「世界最大」，3000台機器！<br>
-                <span class="map-tag tag-anime">動漫</span> <strong>Animate 池袋本店：</strong> 世界最大動漫商店，女性向商品特別豐富。
+            <li class="map-item">
+                <span class="map-tag tag-gacha">扭蛋</span>
+                <strong>Tokyo Gashapon Street (東京一番街 B1)</strong> - 東京車站 (Day 4)<br>
+                <small>專門的扭蛋街，不用出站就能扭，種類超多。</small>
+            </li>
+            <li class="map-item">
+                <span class="map-tag tag-anime">動漫</span>
+                <strong>Tokyo Character Street</strong> - 東京車站 (Day 4)<br>
+                <small>吉卜力、寶可夢、Jump Shop 都在這一條街。</small>
+            </li>
+            <li class="map-item">
+                <span class="map-tag tag-anime">動漫</span>
+                <strong>Shibuya PARCO (6F)</strong> - 澀谷 (Day 5)<br>
+                <small>任天堂旗艦店 (Nintendo TOKYO)、寶可夢中心。</small>
+            </li>
+            <li class="map-item">
+                <span class="map-tag tag-gacha">扭蛋</span>
+                <strong>#C-pla 澀谷中心街</strong> - 澀谷 (Day 5)<br>
+                <small>澀谷的大型扭蛋專賣店。</small>
+            </li>
+            <li class="map-item">
+                <span class="map-tag tag-gacha">扭蛋</span>
+                <strong>Gashapon Department Store (Sunshine City)</strong> - 池袋 (備案)<br>
+                <small>金氏世界紀錄認證「世界最大」，3000台機器！</small>
             </li>
         </ul>
     </div>
 
-    <div class="card" style="text-align: center;">
-        <h3>💰 我們的冒險基金與小撇步</h3>
-        <p>機票與住宿佔了約 89%，我們把錢花在刀口上！</p>
-        <div class="tips">
-            💡 <strong>交通省錢術：</strong> 地鐵72小時券預計在 Day 4-6 (週五至週日) 使用，這幾天跑最遠！ 
-        </div>
-        <div class="tips">
-            💡 <strong>迪士尼攻略：</strong> 一定要提早入園！美女與野獸 DPA 是省時間神器。
-        </div>
-        <div class="tips">
-            💡 <strong>聖誕限定：</strong> 晴空塔、丸之內、六本木、青之洞窟，這四大燈飾我們都不會錯過。
+    <div class="card">
+        <h3 style="text-align: center;">💰 記帳小幫手</h3>
+        <p style="text-align: center; font-size: 0.9rem;">記錄我們的甜蜜開銷 (可截圖或列印使用)</p>
+        
+        <table class="budget-table">
+            <thead>
+                <tr>
+                    <th>項目</th>
+                    <th>說明</th>
+                    <th class="amount-col">預估 (¥)</th>
+                    <th class="amount-col">實際 (¥)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>✈️ 機票</td>
+                    <td>China Airlines 來回 (高雄-成田)</td>
+                    <td class="amount-col">-</td>
+                    <td class="amount-col"></td>
+                </tr>
+                <tr>
+                    <td>🏠 住宿</td>
+                    <td>Hotel Resol Akihabara (6晚)</td>
+                    <td class="amount-col">-</td>
+                    <td class="amount-col"></td>
+                </tr>
+                <tr>
+                    <td>🚆 交通</td>
+                    <td>Skyliner 來回 + 地鐵72hr券 + Suica</td>
+                    <td class="amount-col">5,000+</td>
+                    <td class="amount-col"></td>
+                </tr>
+                <tr>
+                    <td>🏰 迪士尼</td>
+                    <td>門票 + 美女與野獸DPA + 餐飲</td>
+                    <td class="amount-col">15,000+</td>
+                    <td class="amount-col"></td>
+                </tr>
+                <tr>
+                    <td>🎄 活動</td>
+                    <td>晴空塔展望台 (若上塔) / 熱紅酒</td>
+                    <td class="amount-col">3,000</td>
+                    <td class="amount-col"></td>
+                </tr>
+                <tr>
+                    <td>🛍️ 購物</td>
+                    <td>藥妝、扭蛋、伴手禮 (預算)</td>
+                    <td class="amount-col">30,000</td>
+                    <td class="amount-col"></td>
+                </tr>
+                <tr>
+                    <td>🍔 餐飲</td>
+                    <td>每日餐費 (約 ¥5000/人/日)</td>
+                    <td class="amount-col">35,000</td>
+                    <td class="amount-col"></td>
+                </tr>
+                <tr style="background-color: #ffe4e1; font-weight: bold;">
+                    <td>💰 總計</td>
+                    [cite_start]<td>機票住宿佔 89% [cite: 42]</td>
+                    <td class="amount-col">Total</td>
+                    <td class="amount-col"></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="tips" style="margin-top: 20px;">
+            [cite_start]💡 <strong>省錢回憶：</strong> 地鐵券要在 Day 4-6 跑最遠的時候用喔！ [cite: 42]
         </div>
     </div>
 
