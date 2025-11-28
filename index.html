@@ -12,7 +12,6 @@
             --gold-accent: #FFD700;
             --text-color: #555;
             --white: #ffffff;
-            --success-green: #98FB98;
         }
 
         body {
@@ -47,7 +46,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -65,7 +64,6 @@
             margin: 0 10px;
         }
 
-        /* Info Card Style */
         .card {
             background: white;
             border-radius: 20px;
@@ -96,20 +94,179 @@
             font-weight: bold;
         }
 
-        .itinerary-item {
+        .tab-buttons {
             display: flex;
-            align-items: flex-start;
-            margin-bottom: 15px;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        .time {
-            min-width: 70px;
+        .tab-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--magic-blue);
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
             font-weight: bold;
+            transition: all 0.3s;
             color: var(--magic-blue);
         }
 
-        .content {
+        .tab-btn.active {
+            background: var(--magic-blue);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 搜尋功能樣式 */
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-container input {
             flex: 1;
+            padding: 10px;
+            border: 2px solid var(--magic-blue);
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .search-container button {
+            padding: 10px 20px;
+            background: var(--magic-blue);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .map-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 5px solid var(--magic-blue);
+        }
+
+        .map-tag {
+            background: #eee;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+            display: inline-block;
+        }
+
+        .tag-gacha { background: #ffe4e1; color: #d63384; }
+        .tag-anime { background: #e0f7fa; color: #00838f; }
+
+        /* 記帳功能樣式 */
+        .expense-form {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .form-row input, .form-row select {
+            padding: 8px;
+            border: 2px solid var(--magic-blue);
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-row button {
+            padding: 8px 15px;
+            background: var(--primary-pink);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .expense-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .expense-item {
+            background: white;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--magic-blue);
+        }
+
+        .expense-item.delete-mode {
+            background: #ffe4e1;
+        }
+
+        .expense-delete {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .summary {
+            background: linear-gradient(135deg, var(--primary-pink), var(--magic-blue));
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .summary h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-item {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: bold;
         }
 
         .tips {
@@ -121,96 +278,22 @@
             border-left: 5px solid var(--magic-blue);
         }
 
-        /* Search Box Style */
-        .search-box {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--magic-blue);
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        .search-box:focus {
-            border-color: var(--primary-pink);
-        }
-
-        /* Map List Style */
-        .map-list {
-            list-style: none;
-            padding: 0;
-        }
-        .map-item {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px dashed #eee;
-            display: block; /* For JS toggling */
-        }
-        .map-tag {
-            background: #eee;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            margin-right: 8px;
-            font-weight: bold;
-        }
-        .tag-gacha { background: #ffe4e1; color: #d63384; }
-        .tag-anime { background: #e0f7fa; color: #00838f; }
-
-        /* Accounting Table Style */
-        .budget-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
-        .budget-table th, .budget-table td {
-            border: 1px solid #eee;
-            padding: 10px;
-            text-align: left;
-        }
-        .budget-table th {
-            background-color: #fff0f5;
-            color: var(--text-color);
-        }
-        .budget-table tr:nth-child(even) {
-            background-color: #fcfcfc;
-        }
-        .amount-col {
-            width: 80px;
-            text-align: right;
-            color: var(--primary-pink);
-            font-weight: bold;
-        }
-
         footer {
             text-align: center;
             padding: 2rem;
             color: #888;
             font-size: 0.9rem;
         }
-    </style>
-    <script>
-        function filterMap() {
-            // 簡單的搜尋功能
-            var input, filter, ul, li, i, txtValue;
-            input = document.getElementById('mapSearch');
-            filter = input.value.toUpperCase();
-            ul = document.getElementById("mapList");
-            li = ul.getElementsByClassName('map-item');
 
-            for (i = 0; i < li.length; i++) {
-                txtValue = li[i].textContent || li[i].innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    li[i].style.display = "";
-                } else {
-                    li[i].style.display = "none";
-                }
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr 1fr;
+            }
+            .summary-row {
+                flex-direction: column;
             }
         }
-    </script>
+    </style>
 </head>
 <body>
 
@@ -226,247 +309,222 @@
         <h3 style="text-align: center;">✈️ 幸福啟程 & 溫馨小窩</h3>
         <p><strong>💖 我們的航班 (China Airlines)：</strong></p>
         <ul>
-            [cite_start]<li>去程 (12/10): CI126 高雄 13:05 ➔ 東京成田 17:25 [cite: 28]</li>
-            [cite_start]<li>回程 (12/16): CI127 東京成田 18:25 ➔ 高雄 22:05 [cite: 28]</li>
+            <li>去程 (12/10): CI126 高雄 13:05 ➔ 東京成田 17:25 </li>
+            <li>回程 (12/16): CI127 東京成田 18:25 ➔ 高雄 22:05 </li>
         </ul>
         <p><strong>🏠 甜蜜基地：</strong></p>
         <ul>
-            [cite_start]<li>地點：瑞索爾秋葉原飯店 (Hotel Resol Akihabara) [cite: 28]</li>
+            <li>地點：瑞索爾秋葉原飯店 (Hotel Resol Akihabara) </li>
             <li>備註：位於秋葉原中心，交通超方便！</li>
         </ul>
     </div>
 
-    <h2 class="section-title">我們的魔法日記</h2>
-
-    <div class="card">
-        <span class="date-badge">Day 1 (12/10)</span> <span class="highlight">都會序章：初見東京</span>
-        <div class="itinerary-item">
-            <span class="time">17:25</span>
-            <div class="content">降落成田機場，心跳加速的開始！</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">18:40</span>
-            [cite_start]<div class="content">搭乘 <strong>Keisei Skyliner</strong> 直奔市區 [cite: 29]。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">20:30</span>
-            [cite_start]<div class="content">夜遊上野阿美橫町，藥妝店尋寶 [cite: 30]。</div>
+    <!-- 地圖搜尋標籤 -->
+    <div style="margin: 30px 0;">
+        <div class="tab-buttons" style="justify-content: center;">
+            <button class="tab-btn active" onclick="switchTab('itinerary')">📅 行程</button>
+            <button class="tab-btn" onclick="switchTab('gashapon')">🎎 扭蛋地圖</button>
+            <button class="tab-btn" onclick="switchTab('anime')">🎨 動漫地圖</button>
+            <button class="tab-btn" onclick="switchTab('expense')">💰 旅程記帳</button>
         </div>
     </div>
 
-    <div class="card" style="border-color: #FFD700; background: #fffdf0;">
-        <span class="date-badge" style="background: #FFD700;">Day 2 (12/11)</span> <span class="highlight">魔法王國：迪士尼全日夢幻</span>
-        <div class="itinerary-item">
-            <span class="time">08:00</span>
-            [cite_start]<div class="content">入園衝刺！App 搶「美女與野獸」DPA [cite: 31]。</div>
+    <!-- 行程標籤 -->
+    <div id="itinerary" class="tab-content active">
+        <h2 class="section-title">我們的魔法日記</h2>
+
+        <div class="card">
+            <span class="date-badge">Day 1 (12/10)</span> <span class="highlight">都會序章：初見東京</span>
+            <div class="itinerary-item">
+                <span class="time">17:25</span>
+                <div class="content">降落成田機場，心跳加速的開始！</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">18:40</span>
+                <div class="content">搭乘帥氣的 <strong>Keisei Skyliner</strong> 直奔市區。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">19:37</span>
+                <div class="content">入住飯店，放好行李。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">20:30</span>
+                <div class="content">夜遊上野阿美橫町，感受熱鬧氣氛與藥妝店尋寶。</div>
+            </div>
         </div>
-        <div class="itinerary-item">
-            <span class="time">13:00</span>
-            [cite_start]<div class="content">日間遊行「迪士尼眾彩交融」 [cite: 32]。</div>
+
+        <div class="card" style="border-color: #FFD700; background: #fffdf0;">
+            <span class="date-badge" style="background: #FFD700;">Day 2 (12/11)</span> <span class="highlight">魔法王國：迪士尼全日夢幻</span>
+            <p>✨ 重點任務：體驗從早到晚的完整魔法！</p>
+            <div class="itinerary-item">
+                <span class="time">08:00</span>
+                <div class="content">入園衝刺！用 App 搶「美女與野獸」DPA，這是一定要和你一起看的浪漫城堡。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">13:00</span>
+                <div class="content">觀賞日間遊行「迪士尼眾彩交融」。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">下午</span>
+                <div class="content">一起吃三眼怪麻糬、煙燻火雞腿。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">19:15</span>
+                <div class="content">夜間電子大遊行「夢之光」，點亮我們的夜晚。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">20:30</span>
+                <div class="content">城堡煙火秀「迪士尼炫彩夜空」，為這一天畫下完美句點 🎆 。</div>
+            </div>
         </div>
-        <div class="itinerary-item">
-            <span class="time">19:15</span>
-            [cite_start]<div class="content">夜間電子大遊行「夢之光」 [cite: 33]。</div>
+
+        <div class="card">
+            <span class="date-badge">Day 3 (12/12)</span> <span class="highlight">下町暮光：晴空塔聖誕夜</span>
+            <div class="itinerary-item">
+                <span class="time">早晨</span>
+                <div class="content">參拜神田神社、被官稻荷神社，祈求好運。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">午間</span>
+                <div class="content">漫步淺草寺，在仲見世通吃炸肉餅。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">18:15</span>
+                <div class="content"><strong>重頭戲：晴空塔「夢幻聖誕2025」</strong> 🎄<br>一起逛德國風聖誕市集喝熱紅酒，欣賞4樓廣場的光雕投影秀。</div>
+            </div>
         </div>
-        <div class="itinerary-item">
-            <span class="time">20:30</span>
-            <div class="content">城堡煙火秀「迪士尼炫彩夜空」。</div>
+
+        <div class="card">
+            <span class="date-badge">Day 4 (12/13)</span> <span class="highlight">帝都印記：命運的紅線</span>
+            <div class="itinerary-item">
+                <span class="time">上午</span>
+                <div class="content">散步皇居東御苑，享受皇家花園的寧靜。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">午後</span>
+                <div class="content">尋找《你的名字。》場景，在東京車站感受電影裡的時空交錯。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">晚間</span>
+                <div class="content"><strong>丸之內彩燈節</strong> ✨<br>120萬顆香檳金 LED 燈海，這是東京最浪漫的金色大道。</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <span class="date-badge">Day 5 (12/14)</span> <span class="highlight">都會畫布：藍色燈海與名場景</span>
+            <div class="itinerary-item">
+                <span class="time">全日</span>
+                <div class="content">巡禮《你的名字。》：須賀神社階梯（那個回眸！）、信濃町天橋 。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">17:30</span>
+                <div class="content">東京都廳光雕投影秀 (TOKYO Night & Light)。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">夜晚</span>
+                <div class="content"><strong>青之洞窟 SHIBUYA</strong> 💙<br>漫步在代代木公園到澀谷的藍色銀河隧道中。</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <span class="date-badge">Day 6 (12/15)</span> <span class="highlight">貓緣奇遇：招福與奢華夜景</span>
+            <div class="itinerary-item">
+                <span class="time">07:45</span>
+                <div class="content">前往豪德寺，被滿滿的招福貓療癒 (聽說能招來良緣喔) 🐱。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">上午</span>
+                <div class="content">世田谷百年市集 (Boro-ichi)，一起在跳蚤市場尋寶。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">晚間</span>
+                <div class="content">六本木之夜：欣賞櫸木坂 SNOW & BLUE 燈飾，以及東京中城的夢幻光影花園。</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <span class="date-badge">Day 7 (12/16)</span> <span class="highlight">滿載而歸：最後的衝刺</span>
+            <div class="itinerary-item">
+                <span class="time">上午</span>
+                <div class="content">秋葉原與上野最後採購！唐吉訶德、Yamashiroya 玩具店掃貨。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">14:50</span>
+                <div class="content">抵達成田機場，去 Nintendo Check In 區域拍照留念。</div>
+            </div>
+            <div class="itinerary-item">
+                <span class="time">18:25</span>
+                <div class="content">搭機返航，帶著滿滿的回憶回家。</div>
+            </div>
         </div>
     </div>
 
-    <div class="card">
-        <span class="date-badge">Day 3 (12/12)</span> <span class="highlight">下町暮光：晴空塔聖誕夜</span>
-        <div class="itinerary-item">
-            <span class="time">早晨</span>
-            [cite_start]<div class="content">參拜神田神社、被官稻荷神社 [cite: 34]。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">午間</span>
-            [cite_start]<div class="content">淺草寺、仲見世通炸肉餅 [cite: 34]。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">18:15</span>
-            [cite_start]<div class="content"><strong>晴空塔「夢幻聖誕2025」</strong> 🎄 聖誕市集與光雕秀 [cite: 35]。</div>
-        </div>
-    </div>
-
-    <div class="card">
-        <span class="date-badge">Day 4 (12/13)</span> <span class="highlight">帝都印記：命運的紅線</span>
-        <div class="itinerary-item">
-            <span class="time">上午</span>
-            [cite_start]<div class="content">皇居東御苑散步 [cite: 35]。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">午後</span>
-            [cite_start]<div class="content">東京車站巡禮，《你的名字。》場景 [cite: 36]。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">晚間</span>
-            [cite_start]<div class="content"><strong>丸之內彩燈節</strong> ✨ 120萬顆香檳金燈海 [cite: 36]。</div>
+    <!-- 扭蛋地圖搜尋 -->
+    <div id="gashapon" class="tab-content">
+        <h2 class="section-title">🎎 扭蛋地圖搜尋</h2>
+        <div class="card">
+            <div class="search-container">
+                <input type="text" id="gashaponSearch" placeholder="搜尋扭蛋店 (如：秋葉原、澀谷、池袋)..." />
+                <button onclick="searchGashapon()">🔍 搜尋</button>
+            </div>
+            <div id="gashaponResults"></div>
+            <a href="https://bandainamco-am.co.jp/zh-CHT/others/capsule-toy-store/" target="_blank" style="display: inline-block; margin-top: 15px; padding: 10px 15px; background: var(--magic-blue); color: white; text-decoration: none; border-radius: 8px;">
+                📱 官方扭蛋地圖
+            </a>
         </div>
     </div>
 
-    <div class="card">
-        <span class="date-badge">Day 5 (12/14)</span> <span class="highlight">都會畫布：藍色燈海</span>
-        <div class="itinerary-item">
-            <span class="time">全日</span>
-            [cite_start]<div class="content">《你的名字。》巡禮：須賀神社階梯、信濃町天橋 [cite: 37]。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">17:30</span>
-            [cite_start]<div class="content">東京都廳光雕投影秀 [cite: 37]。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">夜晚</span>
-            [cite_start]<div class="content"><strong>青之洞窟 SHIBUYA</strong> 💙 代代木公園燈海 [cite: 38]。</div>
-        </div>
-    </div>
-
-    <div class="card">
-        <span class="date-badge">Day 6 (12/15)</span> <span class="highlight">貓緣奇遇：招福與奢華夜景</span>
-        <div class="itinerary-item">
-            <span class="time">07:45</span>
-            [cite_start]<div class="content">豪德寺招福貓 [cite: 39]。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">上午</span>
-            [cite_start]<div class="content">世田谷百年市集 (Boro-ichi) 跳蚤市場 [cite: 39]。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">晚間</span>
-            [cite_start]<div class="content">六本木之夜：櫸木坂燈飾、東京中城 [cite: 39]。</div>
+    <!-- 動漫地圖搜尋 -->
+    <div id="anime" class="tab-content">
+        <h2 class="section-title">🎨 動漫聖地地圖</h2>
+        <div class="card">
+            <div class="search-container">
+                <input type="text" id="animeSearch" placeholder="搜尋動漫地點 (如：澀谷、秋葉原、新宿)..." />
+                <button onclick="searchAnime()">🔍 搜尋</button>
+            </div>
+            <div id="animeResults"></div>
+            <a href="https://www.anitabi.cn/map" target="_blank" style="display: inline-block; margin-top: 15px; padding: 10px 15px; background: var(--primary-pink); color: white; text-decoration: none; border-radius: 8px;">
+                📱 Anitabi 動漫旅遊地圖
+            </a>
         </div>
     </div>
 
-    <div class="card">
-        <span class="date-badge">Day 7 (12/16)</span> <span class="highlight">滿載而歸</span>
-        <div class="itinerary-item">
-            <span class="time">上午</span>
-            [cite_start]<div class="content">秋葉原/上野最後採購 (唐吉訶德、Yamashiroya) [cite: 40]。</div>
-        </div>
-        <div class="itinerary-item">
-            <span class="time">14:50</span>
-            [cite_start]<div class="content">成田機場 Nintendo Check In 拍照 [cite: 41]。</div>
-        </div>
-    </div>
+    <!-- 記帳功能 -->
+    <div id="expense" class="tab-content">
+        <h2 class="section-title">💰 旅程記帳本</h2>
+        <div class="card">
+            <div class="expense-form">
+                <h3 style="margin-top: 0;">新增開支</h3>
+                <div class="form-row">
+                    <input type="date" id="expenseDate" required />
+                    <input type="number" id="expenseAmount" placeholder="金額 (TWD)" min="0" step="1" required />
+                    <input type="text" id="expenseDesc" placeholder="項目 (如：晚餐、門票)" required />
+                    <button onclick="addExpense()">➕ 記帳</button>
+                </div>
+            </div>
 
-    <div class="card" style="border: 2px dashed var(--primary-pink);">
-        <h3 style="text-align: center;">🗺️ 尋寶地圖：扭蛋與動漫聖地</h3>
-        <p style="text-align: center; font-size: 0.9rem;">輸入關鍵字 (如：秋葉原、扭蛋) 快速找點！</p>
-        
-        <input type="text" id="mapSearch" onkeyup="filterMap()" placeholder="🔍 搜尋地點或類型..." class="search-box">
+            <div class="expense-list" id="expenseList"></div>
 
-        <ul class="map-list" id="mapList">
-            <li class="map-item">
-                <span class="map-tag tag-gacha">扭蛋</span>
-                <strong>Akihabara Gachapon Kaikan (ガチャポン会館)</strong> - 秋葉原<br>
-                <small>扭蛋聖地，約400台機器，氣氛超復古。就在我們飯店附近！</small>
-            </li>
-            <li class="map-item">
-                <span class="map-tag tag-gacha">扭蛋</span>
-                <strong>Gashapon Department Store (Namco 4F)</strong> - 秋葉原<br>
-                <small>機器較新，環境舒適，適合晚上去逛。</small>
-            </li>
-            <li class="map-item">
-                <span class="map-tag tag-anime">動漫</span>
-                <strong>Animate 秋葉原本館</strong> - 秋葉原<br>
-                <small>就在中央通，周邊商品最齊全。</small>
-            </li>
-            <li class="map-item">
-                <span class="map-tag tag-gacha">扭蛋</span>
-                <strong>Tokyo Gashapon Street (東京一番街 B1)</strong> - 東京車站 (Day 4)<br>
-                <small>專門的扭蛋街，不用出站就能扭，種類超多。</small>
-            </li>
-            <li class="map-item">
-                <span class="map-tag tag-anime">動漫</span>
-                <strong>Tokyo Character Street</strong> - 東京車站 (Day 4)<br>
-                <small>吉卜力、寶可夢、Jump Shop 都在這一條街。</small>
-            </li>
-            <li class="map-item">
-                <span class="map-tag tag-anime">動漫</span>
-                <strong>Shibuya PARCO (6F)</strong> - 澀谷 (Day 5)<br>
-                <small>任天堂旗艦店 (Nintendo TOKYO)、寶可夢中心。</small>
-            </li>
-            <li class="map-item">
-                <span class="map-tag tag-gacha">扭蛋</span>
-                <strong>#C-pla 澀谷中心街</strong> - 澀谷 (Day 5)<br>
-                <small>澀谷的大型扭蛋專賣店。</small>
-            </li>
-            <li class="map-item">
-                <span class="map-tag tag-gacha">扭蛋</span>
-                <strong>Gashapon Department Store (Sunshine City)</strong> - 池袋 (備案)<br>
-                <small>金氏世界紀錄認證「世界最大」，3000台機器！</small>
-            </li>
-        </ul>
-    </div>
-
-    <div class="card">
-        <h3 style="text-align: center;">💰 記帳小幫手</h3>
-        <p style="text-align: center; font-size: 0.9rem;">記錄我們的甜蜜開銷 (可截圖或列印使用)</p>
-        
-        <table class="budget-table">
-            <thead>
-                <tr>
-                    <th>項目</th>
-                    <th>說明</th>
-                    <th class="amount-col">預估 (¥)</th>
-                    <th class="amount-col">實際 (¥)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>✈️ 機票</td>
-                    <td>China Airlines 來回 (高雄-成田)</td>
-                    <td class="amount-col">-</td>
-                    <td class="amount-col"></td>
-                </tr>
-                <tr>
-                    <td>🏠 住宿</td>
-                    <td>Hotel Resol Akihabara (6晚)</td>
-                    <td class="amount-col">-</td>
-                    <td class="amount-col"></td>
-                </tr>
-                <tr>
-                    <td>🚆 交通</td>
-                    <td>Skyliner 來回 + 地鐵72hr券 + Suica</td>
-                    <td class="amount-col">5,000+</td>
-                    <td class="amount-col"></td>
-                </tr>
-                <tr>
-                    <td>🏰 迪士尼</td>
-                    <td>門票 + 美女與野獸DPA + 餐飲</td>
-                    <td class="amount-col">15,000+</td>
-                    <td class="amount-col"></td>
-                </tr>
-                <tr>
-                    <td>🎄 活動</td>
-                    <td>晴空塔展望台 (若上塔) / 熱紅酒</td>
-                    <td class="amount-col">3,000</td>
-                    <td class="amount-col"></td>
-                </tr>
-                <tr>
-                    <td>🛍️ 購物</td>
-                    <td>藥妝、扭蛋、伴手禮 (預算)</td>
-                    <td class="amount-col">30,000</td>
-                    <td class="amount-col"></td>
-                </tr>
-                <tr>
-                    <td>🍔 餐飲</td>
-                    <td>每日餐費 (約 ¥5000/人/日)</td>
-                    <td class="amount-col">35,000</td>
-                    <td class="amount-col"></td>
-                </tr>
-                <tr style="background-color: #ffe4e1; font-weight: bold;">
-                    <td>💰 總計</td>
-                    [cite_start]<td>機票住宿佔 89% [cite: 42]</td>
-                    <td class="amount-col">Total</td>
-                    <td class="amount-col"></td>
-                </tr>
-            </tbody>
-        </table>
-        
-        <div class="tips" style="margin-top: 20px;">
-            [cite_start]💡 <strong>省錢回憶：</strong> 地鐵券要在 Day 4-6 跑最遠的時候用喔！ [cite: 42]
+            <div class="summary">
+                <h3>旅程財務總結</h3>
+                <div class="summary-row">
+                    <div class="summary-item">
+                        <div class="summary-label">總支出</div>
+                        <div class="summary-value">$ <span id="totalExpense">0</span></div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">平均每日</div>
+                        <div class="summary-value">$ <span id="avgExpense">0</span></div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">項目數</div>
+                        <div class="summary-value"><span id="expenseCount">0</span></div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button onclick="clearAllExpenses()" style="padding: 8px 15px; background: rgba(255,255,255,0.3); color: white; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: bold;">🗑️ 清除所有記錄</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -476,6 +534,187 @@
     <p>Made with ❤️ for our Tokyo Trip.<br>
     資料來源：Tokyo_Winter_Mission_Briefing.pdf</p>
 </footer>
+
+<script>
+    // 扭蛋地點資料
+    const gashaponLocations = {
+        '秋葉原': [
+            { name: 'Akihabara Gachapon Kaikan', desc: '約400台機器，氣氛超復古', area: '秋葉原' },
+            { name: 'Gashapon Department Store (Namco 4F)', desc: '機器較新，就在飯店附近', area: '秋葉原' }
+        ],
+        '東京車站': [
+            { name: 'Tokyo Gashapon Street (東京一番街 B1)', desc: '專門的扭蛋街，種類超多', area: '東京車站' }
+        ],
+        '澀谷': [
+            { name: '#C-pla 澀谷中心街', desc: '澀谷的大型扭蛋專賣店', area: '澀谷' }
+        ],
+        '新宿': [
+            { name: 'Gachagacha no Mori (新宿 Subnade)', desc: '新宿東口地下街，超過1000台', area: '新宿' }
+        ],
+        '池袋': [
+            { name: 'Gashapon Department Store (Sunshine City)', desc: '金氏世界紀錄認證「世界最大」，3000台機器！', area: '池袋' }
+        ]
+    };
+
+    // 動漫地點資料
+    const animeLocations = {
+        '秋葉原': [
+            { name: 'Animate 秋葉原本館', desc: '就在中央通，周邊商品最齊全', area: '秋葉原' }
+        ],
+        '東京車站': [
+            { name: 'Tokyo Character Street', desc: '吉卜力、寶可夢、Jump Shop 都在這一條街', area: '東京車站' }
+        ],
+        '澀谷': [
+            { name: 'Shibuya PARCO (6F)', desc: '任天堂旗艦店、寶可夢中心、Jump Shop', area: '澀谷' }
+        ],
+        '新宿': [
+            { name: 'Nintendo TOKYO 旗艦店', desc: '任天堂官方旗艦店', area: '新宿' }
+        ],
+        '池袋': [
+            { name: 'Animate 池袋本店', desc: '世界最大動漫商店，女性向商品特別豐富', area: '池袋' }
+        ]
+    };
+
+    // 標籤切換
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tab).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    // 搜尋扭蛋
+    function searchGashapon() {
+        const keyword = document.getElementById('gashaponSearch').value.trim();
+        const resultsDiv = document.getElementById('gashaponResults');
+        resultsDiv.innerHTML = '';
+
+        if (!keyword) {
+            resultsDiv.innerHTML = '<p style="color: #999;">請輸入搜尋關鍵字</p>';
+            return;
+        }
+
+        let found = false;
+        for (const [area, locations] of Object.entries(gashaponLocations)) {
+            if (area.includes(keyword) || keyword === '') {
+                locations.forEach(loc => {
+                    const item = document.createElement('div');
+                    item.className = 'map-item';
+                    item.innerHTML = `
+                        <div><strong>📍 ${loc.name}</strong></div>
+                        <div style="margin-top: 5px;">${loc.desc}</div>
+                        <div style="margin-top: 8px;"><span class="map-tag tag-gacha">扭蛋</span></div>
+                    `;
+                    resultsDiv.appendChild(item);
+                    found = true;
+                });
+            }
+        }
+
+        if (!found) {
+            resultsDiv.innerHTML = '<p style="color: #999;">找不到相關地點，試試看其他關鍵字！</p>';
+        }
+    }
+
+    // 搜尋動漫
+    function searchAnime() {
+        const keyword = document.getElementById('animeSearch').value.trim();
+        const resultsDiv = document.getElementById('animeResults');
+        resultsDiv.innerHTML = '';
+
+        if (!keyword) {
+            resultsDiv.innerHTML = '<p style="color: #999;">請輸入搜尋關鍵字</p>';
+            return;
+        }
+
+        let found = false;
+        for (const [area, locations] of Object.entries(animeLocations)) {
+            if (area.includes(keyword) || keyword === '') {
+                locations.forEach(loc => {
+                    const item = document.createElement('div');
+                    item.className = 'map-item';
+                    item.innerHTML = `
+                        <div><strong>📍 ${loc.name}</strong></div>
+                        <div style="margin-top: 5px;">${loc.desc}</div>
+                        <div style="margin-top: 8px;"><span class="map-tag tag-anime">動漫</span></div>
+                    `;
+                    resultsDiv.appendChild(item);
+                    found = true;
+                });
+            }
+        }
+
+        if (!found) {
+            resultsDiv.innerHTML = '<p style="color: #999;">找不到相關地點，試試看其他關鍵字！</p>';
+        }
+    }
+
+    // 記帳相關函數
+    let expenses = [];
+
+    function addExpense() {
+        const date = document.getElementById('expenseDate').value;
+        const amount = parseFloat(document.getElementById('expenseAmount').value);
+        const desc = document.getElementById('expenseDesc').value.trim();
+
+        if (!date || !amount || !desc) {
+            alert('請填寫所有欄位');
+            return;
+        }
+
+        expenses.push({ date, amount, desc, id: Date.now() });
+        document.getElementById('expenseDate').value = '';
+        document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseDesc').value = '';
+
+        updateExpenseDisplay();
+    }
+
+    function deleteExpense(id) {
+        expenses = expenses.filter(e => e.id !== id);
+        updateExpenseDisplay();
+    }
+
+    function updateExpenseDisplay() {
+        const listDiv = document.getElementById('expenseList');
+        listDiv.innerHTML = '';
+
+        const sortedExpenses = [...expenses].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        sortedExpenses.forEach(exp => {
+            const item = document.createElement('div');
+            item.className = 'expense-item';
+            item.innerHTML = `
+                <div>
+                    <strong>${exp.desc}</strong><br>
+                    <span style="font-size: 0.85rem; color: #888;">${exp.date} | $ ${exp.amount}</span>
+                </div>
+                <button class="expense-delete" onclick="deleteExpense(${exp.id})">刪除</button>
+            `;
+            listDiv.appendChild(item);
+        });
+
+        const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+        const days = new Set(expenses.map(e => e.date)).size || 1;
+        const avg = days > 0 ? Math.round(total / days) : 0;
+
+        document.getElementById('totalExpense').textContent = total.toLocaleString();
+        document.getElementById('avgExpense').textContent = avg.toLocaleString();
+        document.getElementById('expenseCount').textContent = expenses.length;
+    }
+
+    function clearAllExpenses() {
+        if (confirm('確定要清除所有記錄嗎？')) {
+            expenses = [];
+            updateExpenseDisplay();
+        }
+    }
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        updateExpenseDisplay();
+    });
+</script>
 
 </body>
 </html>
