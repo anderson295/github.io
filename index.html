@@ -1,720 +1,254 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>東京冬日童話：我們的浪漫奇遇 ✨</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-pink: #FFB7C5;
-            --magic-blue: #A0D8EF;
-            --gold-accent: #FFD700;
-            --text-color: #555;
-            --white: #ffffff;
-        }
+/**
+ * MHCh-450L 氫氣瓶存量計算器
+ * 
+ * 基於 P-C-T (Pressure-Composition-Temperature) 特性曲線
+ * 金屬氫化物儲氫罐: MmNiMnCo (AB5-type)
+ * 
+ * 規格:
+ * - 最大儲氫量: 450 NL (Normal Liters)
+ * - 工作壓力: 0 ~ 1 MPaG @ 20°C
+ * - 工作溫度: 0 ~ 40°C
+ */
 
-        body {
-            font-family: 'Nunito', sans-serif;
-            background-color: #FFF0F5;
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            background-image: url('data:image/svg+xml;utf8,<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><circle cx="2" cy="2" r="1" fill="%23FFB7C5"/></svg>');
-        }
+// P-C-T 曲線數據 (基於規格書的脫附曲線 - Desorption)
+// 壓力 (MPaA) vs 氫氣含量 (Ncc/g) 在不同溫度下
+// 注意: MPaA = MPaG + 0.1 (絕對壓力 = 表壓 + 大氣壓)
 
-        header {
-            background: linear-gradient(135deg, var(--primary-pink), var(--magic-blue));
-            color: white;
-            text-align: center;
-            padding: 3rem 1rem;
-            border-bottom-left-radius: 50% 20px;
-            border-bottom-right-radius: 50% 20px;
-            box-shadow: 0 4px 15px rgba(255, 183, 197, 0.5);
-        }
+interface PCTDataPoint {
+  pressure: number; // MPaA
+  content: number;  // Ncc/g (相對含量百分比)
+}
 
-        h1 {
-            font-size: 2.5rem;
-            margin: 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
+// 溫度對應的 P-C-T 脫附曲線 (簡化的線性內插數據)
+const PCT_CURVES: Record<number, PCTDataPoint[]> = {
+  0: [
+    { pressure: 0.05, content: 5 },
+    { pressure: 0.08, content: 20 },
+    { pressure: 0.10, content: 50 },
+    { pressure: 0.12, content: 100 },
+    { pressure: 0.15, content: 150 },
+    { pressure: 0.20, content: 165 },
+    { pressure: 0.50, content: 170 },
+    { pressure: 1.00, content: 175 },
+  ],
+  10: [
+    { pressure: 0.08, content: 5 },
+    { pressure: 0.12, content: 20 },
+    { pressure: 0.15, content: 50 },
+    { pressure: 0.18, content: 100 },
+    { pressure: 0.25, content: 150 },
+    { pressure: 0.35, content: 165 },
+    { pressure: 0.60, content: 170 },
+    { pressure: 1.00, content: 175 },
+  ],
+  20: [
+    { pressure: 0.12, content: 5 },
+    { pressure: 0.18, content: 20 },
+    { pressure: 0.22, content: 50 },
+    { pressure: 0.28, content: 100 },
+    { pressure: 0.40, content: 150 },
+    { pressure: 0.55, content: 165 },
+    { pressure: 0.80, content: 170 },
+    { pressure: 1.00, content: 172 },
+  ],
+  30: [
+    { pressure: 0.20, content: 5 },
+    { pressure: 0.28, content: 20 },
+    { pressure: 0.35, content: 50 },
+    { pressure: 0.45, content: 100 },
+    { pressure: 0.60, content: 150 },
+    { pressure: 0.80, content: 165 },
+    { pressure: 1.00, content: 168 },
+    { pressure: 1.20, content: 170 },
+  ],
+  40: [
+    { pressure: 0.30, content: 5 },
+    { pressure: 0.42, content: 20 },
+    { pressure: 0.52, content: 50 },
+    { pressure: 0.68, content: 100 },
+    { pressure: 0.90, content: 150 },
+    { pressure: 1.10, content: 162 },
+    { pressure: 1.30, content: 165 },
+    { pressure: 1.50, content: 167 },
+  ],
+};
 
-        .subtitle {
-            font-size: 1.2rem;
-            margin-top: 10px;
-            font-weight: bold;
-        }
+// MHCh-450L 規格常數
+export const MHCH_450L_SPECS = {
+  model: 'MHCh-450L',
+  maxCapacity: 450, // NL (Normal Liters)
+  maxPressure: 500, // psi (滿瓶)
+  minPressure: 0, // psi
+  maxTemp: 40, // °C
+  minTemp: 0, // °C
+  typicalDischargeRate: 560, // Ncc/min
+  weight: 4.7, // kg
+  dimensions: 'O.D.81 x L270 mm',
+  material: 'Aluminum Alloy, A6061-T6',
+};
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+// 單位轉換常數
+const PSI_TO_MPA = 0.00689476; // 1 psi = 0.00689476 MPa
 
-        .section-title {
-            text-align: center;
-            color: var(--primary-pink);
-            font-size: 1.8rem;
-            margin: 2rem 0 1rem;
-            position: relative;
-        }
+/**
+ * 線性內插
+ */
+function linearInterpolate(
+  x: number,
+  x1: number,
+  x2: number,
+  y1: number,
+  y2: number
+): number {
+  return y1 + ((x - x1) * (y2 - y1)) / (x2 - x1);
+}
 
-        .section-title::before, .section-title::after {
-            content: '✨';
-            margin: 0 10px;
-        }
+/**
+ * 從 P-C-T 曲線獲取氫氣含量 (Ncc/g)
+ */
+function getContentFromPCT(pressureMPaA: number, curve: PCTDataPoint[]): number {
+  // 邊界檢查
+  if (pressureMPaA <= curve[0].pressure) {
+    return curve[0].content;
+  }
+  if (pressureMPaA >= curve[curve.length - 1].pressure) {
+    return curve[curve.length - 1].content;
+  }
 
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            border: 2px solid var(--magic-blue);
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary-pink);
-        }
-
-        .date-badge {
-            background-color: var(--primary-pink);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
-
-        .highlight {
-            color: #FF69B4;
-            font-weight: bold;
-        }
-
-        .tab-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            padding: 10px 20px;
-            border: 2px solid var(--magic-blue);
-            background: white;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            color: var(--magic-blue);
-        }
-
-        .tab-btn.active {
-            background: var(--magic-blue);
-            color: white;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* 搜尋功能樣式 */
-        .search-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .search-container input {
-            flex: 1;
-            padding: 10px;
-            border: 2px solid var(--magic-blue);
-            border-radius: 10px;
-            font-size: 1rem;
-        }
-
-        .search-container button {
-            padding: 10px 20px;
-            background: var(--magic-blue);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .map-item {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            border-left: 5px solid var(--magic-blue);
-        }
-
-        .map-tag {
-            background: #eee;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            margin-right: 5px;
-            display: inline-block;
-        }
-
-        .tag-gacha { background: #ffe4e1; color: #d63384; }
-        .tag-anime { background: #e0f7fa; color: #00838f; }
-
-        /* 記帳功能樣式 */
-        .expense-form {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr auto;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .form-row input, .form-row select {
-            padding: 8px;
-            border: 2px solid var(--magic-blue);
-            border-radius: 8px;
-            font-size: 0.95rem;
-        }
-
-        .form-row button {
-            padding: 8px 15px;
-            background: var(--primary-pink);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .expense-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .expense-item {
-            background: white;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid var(--magic-blue);
-        }
-
-        .expense-item.delete-mode {
-            background: #ffe4e1;
-        }
-
-        .expense-delete {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-
-        .summary {
-            background: linear-gradient(135deg, var(--primary-pink), var(--magic-blue));
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .summary h3 {
-            margin: 0 0 10px 0;
-            font-size: 1.2rem;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .summary-item {
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .summary-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .summary-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .tips {
-            background-color: #F0F8FF;
-            padding: 15px;
-            border-radius: 15px;
-            font-size: 0.9rem;
-            margin-top: 10px;
-            border-left: 5px solid var(--magic-blue);
-        }
-
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: #888;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr 1fr;
-            }
-            .summary-row {
-                flex-direction: column;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<header>
-    <h1>🏰 東京冬日童話之旅</h1>
-    <div class="subtitle">2025.12.10 - 12.16 ❄️ 我們的七日浪漫約定</div>
-    <p>Couple's Winter Adventure</p>
-</header>
-
-<div class="container">
-
-    <div class="card">
-        <h3 style="text-align: center;">✈️ 幸福啟程 & 溫馨小窩</h3>
-        <p><strong>💖 我們的航班 (China Airlines)：</strong></p>
-        <ul>
-            <li>去程 (12/10): CI126 高雄 13:05 ➔ 東京成田 17:25 </li>
-            <li>回程 (12/16): CI127 東京成田 18:25 ➔ 高雄 22:05 </li>
-        </ul>
-        <p><strong>🏠 甜蜜基地：</strong></p>
-        <ul>
-            <li>地點：瑞索爾秋葉原飯店 (Hotel Resol Akihabara) </li>
-            <li>備註：位於秋葉原中心，交通超方便！</li>
-        </ul>
-    </div>
-
-    <!-- 地圖搜尋標籤 -->
-    <div style="margin: 30px 0;">
-        <div class="tab-buttons" style="justify-content: center;">
-            <button class="tab-btn active" onclick="switchTab('itinerary')">📅 行程</button>
-            <button class="tab-btn" onclick="switchTab('gashapon')">🎎 扭蛋地圖</button>
-            <button class="tab-btn" onclick="switchTab('anime')">🎨 動漫地圖</button>
-            <button class="tab-btn" onclick="switchTab('expense')">💰 旅程記帳</button>
-        </div>
-    </div>
-
-    <!-- 行程標籤 -->
-    <div id="itinerary" class="tab-content active">
-        <h2 class="section-title">我們的魔法日記</h2>
-
-        <div class="card">
-            <span class="date-badge">Day 1 (12/10)</span> <span class="highlight">都會序章：初見東京</span>
-            <div class="itinerary-item">
-                <span class="time">17:25</span>
-                <div class="content">降落成田機場，心跳加速的開始！</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">18:40</span>
-                <div class="content">搭乘帥氣的 <strong>Keisei Skyliner</strong> 直奔市區。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">19:37</span>
-                <div class="content">入住飯店，放好行李。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">20:30</span>
-                <div class="content">夜遊上野阿美橫町，感受熱鬧氣氛與藥妝店尋寶。</div>
-            </div>
-        </div>
-
-        <div class="card" style="border-color: #FFD700; background: #fffdf0;">
-            <span class="date-badge" style="background: #FFD700;">Day 2 (12/11)</span> <span class="highlight">魔法王國：迪士尼全日夢幻</span>
-            <p>✨ 重點任務：體驗從早到晚的完整魔法！</p>
-            <div class="itinerary-item">
-                <span class="time">08:00</span>
-                <div class="content">入園衝刺！用 App 搶「美女與野獸」DPA，這是一定要和你一起看的浪漫城堡。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">13:00</span>
-                <div class="content">觀賞日間遊行「迪士尼眾彩交融」。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">下午</span>
-                <div class="content">一起吃三眼怪麻糬、煙燻火雞腿。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">19:15</span>
-                <div class="content">夜間電子大遊行「夢之光」，點亮我們的夜晚。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">20:30</span>
-                <div class="content">城堡煙火秀「迪士尼炫彩夜空」，為這一天畫下完美句點 🎆 。</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <span class="date-badge">Day 3 (12/12)</span> <span class="highlight">下町暮光：晴空塔聖誕夜</span>
-            <div class="itinerary-item">
-                <span class="time">早晨</span>
-                <div class="content">參拜神田神社、被官稻荷神社，祈求好運。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">午間</span>
-                <div class="content">漫步淺草寺，在仲見世通吃炸肉餅。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">18:15</span>
-                <div class="content"><strong>重頭戲：晴空塔「夢幻聖誕2025」</strong> 🎄<br>一起逛德國風聖誕市集喝熱紅酒，欣賞4樓廣場的光雕投影秀。</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <span class="date-badge">Day 4 (12/13)</span> <span class="highlight">帝都印記：命運的紅線</span>
-            <div class="itinerary-item">
-                <span class="time">上午</span>
-                <div class="content">散步皇居東御苑，享受皇家花園的寧靜。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">午後</span>
-                <div class="content">尋找《你的名字。》場景，在東京車站感受電影裡的時空交錯。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">晚間</span>
-                <div class="content"><strong>丸之內彩燈節</strong> ✨<br>120萬顆香檳金 LED 燈海，這是東京最浪漫的金色大道。</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <span class="date-badge">Day 5 (12/14)</span> <span class="highlight">都會畫布：藍色燈海與名場景</span>
-            <div class="itinerary-item">
-                <span class="time">全日</span>
-                <div class="content">巡禮《你的名字。》：須賀神社階梯（那個回眸！）、信濃町天橋 。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">17:30</span>
-                <div class="content">東京都廳光雕投影秀 (TOKYO Night & Light)。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">夜晚</span>
-                <div class="content"><strong>青之洞窟 SHIBUYA</strong> 💙<br>漫步在代代木公園到澀谷的藍色銀河隧道中。</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <span class="date-badge">Day 6 (12/15)</span> <span class="highlight">貓緣奇遇：招福與奢華夜景</span>
-            <div class="itinerary-item">
-                <span class="time">07:45</span>
-                <div class="content">前往豪德寺，被滿滿的招福貓療癒 (聽說能招來良緣喔) 🐱。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">上午</span>
-                <div class="content">世田谷百年市集 (Boro-ichi)，一起在跳蚤市場尋寶。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">晚間</span>
-                <div class="content">六本木之夜：欣賞櫸木坂 SNOW & BLUE 燈飾，以及東京中城的夢幻光影花園。</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <span class="date-badge">Day 7 (12/16)</span> <span class="highlight">滿載而歸：最後的衝刺</span>
-            <div class="itinerary-item">
-                <span class="time">上午</span>
-                <div class="content">秋葉原與上野最後採購！唐吉訶德、Yamashiroya 玩具店掃貨。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">14:50</span>
-                <div class="content">抵達成田機場，去 Nintendo Check In 區域拍照留念。</div>
-            </div>
-            <div class="itinerary-item">
-                <span class="time">18:25</span>
-                <div class="content">搭機返航，帶著滿滿的回憶回家。</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 扭蛋地圖搜尋 -->
-    <div id="gashapon" class="tab-content">
-        <h2 class="section-title">🎎 扭蛋地圖搜尋</h2>
-        <div class="card">
-            <div class="search-container">
-                <input type="text" id="gashaponSearch" placeholder="搜尋扭蛋店 (如：秋葉原、澀谷、池袋)..." />
-                <button onclick="searchGashapon()">🔍 搜尋</button>
-            </div>
-            <div id="gashaponResults"></div>
-            <a href="https://bandainamco-am.co.jp/zh-CHT/others/capsule-toy-store/" target="_blank" style="display: inline-block; margin-top: 15px; padding: 10px 15px; background: var(--magic-blue); color: white; text-decoration: none; border-radius: 8px;">
-                📱 官方扭蛋地圖
-            </a>
-        </div>
-    </div>
-
-    <!-- 動漫地圖搜尋 -->
-    <div id="anime" class="tab-content">
-        <h2 class="section-title">🎨 動漫聖地地圖</h2>
-        <div class="card">
-            <div class="search-container">
-                <input type="text" id="animeSearch" placeholder="搜尋動漫地點 (如：澀谷、秋葉原、新宿)..." />
-                <button onclick="searchAnime()">🔍 搜尋</button>
-            </div>
-            <div id="animeResults"></div>
-            <a href="https://www.anitabi.cn/map" target="_blank" style="display: inline-block; margin-top: 15px; padding: 10px 15px; background: var(--primary-pink); color: white; text-decoration: none; border-radius: 8px;">
-                📱 Anitabi 動漫旅遊地圖
-            </a>
-        </div>
-    </div>
-
-    <!-- 記帳功能 -->
-    <div id="expense" class="tab-content">
-        <h2 class="section-title">💰 旅程記帳本</h2>
-        <div class="card">
-            <div class="expense-form">
-                <h3 style="margin-top: 0;">新增開支</h3>
-                <div class="form-row">
-                    <input type="date" id="expenseDate" required />
-                    <input type="number" id="expenseAmount" placeholder="金額 (TWD)" min="0" step="1" required />
-                    <input type="text" id="expenseDesc" placeholder="項目 (如：晚餐、門票)" required />
-                    <button onclick="addExpense()">➕ 記帳</button>
-                </div>
-            </div>
-
-            <div class="expense-list" id="expenseList"></div>
-
-            <div class="summary">
-                <h3>旅程財務總結</h3>
-                <div class="summary-row">
-                    <div class="summary-item">
-                        <div class="summary-label">總支出</div>
-                        <div class="summary-value">$ <span id="totalExpense">0</span></div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-label">平均每日</div>
-                        <div class="summary-value">$ <span id="avgExpense">0</span></div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-label">項目數</div>
-                        <div class="summary-value"><span id="expenseCount">0</span></div>
-                    </div>
-                </div>
-                <div style="margin-top: 15px;">
-                    <button onclick="clearAllExpenses()" style="padding: 8px 15px; background: rgba(255,255,255,0.3); color: white; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: bold;">🗑️ 清除所有記錄</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<footer>
-    <p>Made with ❤️ for our Tokyo Trip.<br>
-    資料來源：Tokyo_Winter_Mission_Briefing.pdf</p>
-</footer>
-
-<script>
-    // 扭蛋地點資料
-    const gashaponLocations = {
-        '秋葉原': [
-            { name: 'Akihabara Gachapon Kaikan', desc: '約400台機器，氣氛超復古', area: '秋葉原' },
-            { name: 'Gashapon Department Store (Namco 4F)', desc: '機器較新，就在飯店附近', area: '秋葉原' }
-        ],
-        '東京車站': [
-            { name: 'Tokyo Gashapon Street (東京一番街 B1)', desc: '專門的扭蛋街，種類超多', area: '東京車站' }
-        ],
-        '澀谷': [
-            { name: '#C-pla 澀谷中心街', desc: '澀谷的大型扭蛋專賣店', area: '澀谷' }
-        ],
-        '新宿': [
-            { name: 'Gachagacha no Mori (新宿 Subnade)', desc: '新宿東口地下街，超過1000台', area: '新宿' }
-        ],
-        '池袋': [
-            { name: 'Gashapon Department Store (Sunshine City)', desc: '金氏世界紀錄認證「世界最大」，3000台機器！', area: '池袋' }
-        ]
-    };
-
-    // 動漫地點資料
-    const animeLocations = {
-        '秋葉原': [
-            { name: 'Animate 秋葉原本館', desc: '就在中央通，周邊商品最齊全', area: '秋葉原' }
-        ],
-        '東京車站': [
-            { name: 'Tokyo Character Street', desc: '吉卜力、寶可夢、Jump Shop 都在這一條街', area: '東京車站' }
-        ],
-        '澀谷': [
-            { name: 'Shibuya PARCO (6F)', desc: '任天堂旗艦店、寶可夢中心、Jump Shop', area: '澀谷' }
-        ],
-        '新宿': [
-            { name: 'Nintendo TOKYO 旗艦店', desc: '任天堂官方旗艦店', area: '新宿' }
-        ],
-        '池袋': [
-            { name: 'Animate 池袋本店', desc: '世界最大動漫商店，女性向商品特別豐富', area: '池袋' }
-        ]
-    };
-
-    // 標籤切換
-    function switchTab(tab) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        document.getElementById(tab).classList.add('active');
-        event.target.classList.add('active');
+  // 找到內插區間
+  for (let i = 0; i < curve.length - 1; i++) {
+    if (pressureMPaA >= curve[i].pressure && pressureMPaA <= curve[i + 1].pressure) {
+      return linearInterpolate(
+        pressureMPaA,
+        curve[i].pressure,
+        curve[i + 1].pressure,
+        curve[i].content,
+        curve[i + 1].content
+      );
     }
+  }
 
-    // 搜尋扭蛋
-    function searchGashapon() {
-        const keyword = document.getElementById('gashaponSearch').value.trim();
-        const resultsDiv = document.getElementById('gashaponResults');
-        resultsDiv.innerHTML = '';
+  return 0;
+}
 
-        if (!keyword) {
-            resultsDiv.innerHTML = '<p style="color: #999;">請輸入搜尋關鍵字</p>';
-            return;
-        }
+/**
+ * 計算氫氣剩餘量
+ * @param pressurePSI - 當前表壓 (psi)
+ * @param temperatureC - 當前溫度 (°C)
+ * @returns 氫氣剩餘量相關數據
+ */
+export function calculateHydrogenRemaining(
+  pressurePSI: number,
+  temperatureC: number
+): {
+  remainingNL: number;
+  remainingPercent: number;
+  estimatedRuntime: number; // 分鐘
+  status: 'full' | 'normal' | 'low' | 'critical';
+} {
+  // 將 psi 轉換為 MPaG，再轉為絕對壓力 MPaA
+  const pressureMPaG = pressurePSI * PSI_TO_MPA;
+  const pressureMPaA = pressureMPaG + 0.1;
 
-        let found = false;
-        for (const [area, locations] of Object.entries(gashaponLocations)) {
-            if (area.includes(keyword) || keyword === '') {
-                locations.forEach(loc => {
-                    const item = document.createElement('div');
-                    item.className = 'map-item';
-                    item.innerHTML = `
-                        <div><strong>📍 ${loc.name}</strong></div>
-                        <div style="margin-top: 5px;">${loc.desc}</div>
-                        <div style="margin-top: 8px;"><span class="map-tag tag-gacha">扭蛋</span></div>
-                    `;
-                    resultsDiv.appendChild(item);
-                    found = true;
-                });
-            }
-        }
+  // 限制溫度範圍
+  const clampedTemp = Math.max(0, Math.min(40, temperatureC));
 
-        if (!found) {
-            resultsDiv.innerHTML = '<p style="color: #999;">找不到相關地點，試試看其他關鍵字！</p>';
-        }
+  // 找到最近的溫度曲線進行內插
+  const temps = Object.keys(PCT_CURVES).map(Number).sort((a, b) => a - b);
+  let lowerTemp = temps[0];
+  let upperTemp = temps[temps.length - 1];
+
+  for (let i = 0; i < temps.length - 1; i++) {
+    if (clampedTemp >= temps[i] && clampedTemp <= temps[i + 1]) {
+      lowerTemp = temps[i];
+      upperTemp = temps[i + 1];
+      break;
     }
+  }
 
-    // 搜尋動漫
-    function searchAnime() {
-        const keyword = document.getElementById('animeSearch').value.trim();
-        const resultsDiv = document.getElementById('animeResults');
-        resultsDiv.innerHTML = '';
+  // 獲取兩個溫度下的含量
+  const contentLower = getContentFromPCT(pressureMPaA, PCT_CURVES[lowerTemp]);
+  const contentUpper = getContentFromPCT(pressureMPaA, PCT_CURVES[upperTemp]);
 
-        if (!keyword) {
-            resultsDiv.innerHTML = '<p style="color: #999;">請輸入搜尋關鍵字</p>';
-            return;
-        }
+  // 溫度內插
+  let content: number;
+  if (lowerTemp === upperTemp) {
+    content = contentLower;
+  } else {
+    content = linearInterpolate(
+      clampedTemp,
+      lowerTemp,
+      upperTemp,
+      contentLower,
+      contentUpper
+    );
+  }
 
-        let found = false;
-        for (const [area, locations] of Object.entries(animeLocations)) {
-            if (area.includes(keyword) || keyword === '') {
-                locations.forEach(loc => {
-                    const item = document.createElement('div');
-                    item.className = 'map-item';
-                    item.innerHTML = `
-                        <div><strong>📍 ${loc.name}</strong></div>
-                        <div style="margin-top: 5px;">${loc.desc}</div>
-                        <div style="margin-top: 8px;"><span class="map-tag tag-anime">動漫</span></div>
-                    `;
-                    resultsDiv.appendChild(item);
-                    found = true;
-                });
-            }
-        }
+  // 最大含量 (滿載時的 Ncc/g)
+  const maxContent = 170; // 約在平台區的最大值
 
-        if (!found) {
-            resultsDiv.innerHTML = '<p style="color: #999;">找不到相關地點，試試看其他關鍵字！</p>';
-        }
-    }
+  // 計算剩餘百分比和 NL
+  const remainingPercent = Math.max(0, Math.min(100, (content / maxContent) * 100));
+  const remainingNL = (remainingPercent / 100) * MHCH_450L_SPECS.maxCapacity;
 
-    // 記帳相關函數
-    let expenses = [];
+  // 預估運行時間 (基於典型放電速率 560 Ncc/min)
+  const estimatedRuntime = (remainingNL * 1000) / MHCH_450L_SPECS.typicalDischargeRate;
 
-    function addExpense() {
-        const date = document.getElementById('expenseDate').value;
-        const amount = parseFloat(document.getElementById('expenseAmount').value);
-        const desc = document.getElementById('expenseDesc').value.trim();
+  // 狀態判斷
+  let status: 'full' | 'normal' | 'low' | 'critical';
+  if (remainingPercent >= 80) {
+    status = 'full';
+  } else if (remainingPercent >= 40) {
+    status = 'normal';
+  } else if (remainingPercent >= 15) {
+    status = 'low';
+  } else {
+    status = 'critical';
+  }
 
-        if (!date || !amount || !desc) {
-            alert('請填寫所有欄位');
-            return;
-        }
+  return {
+    remainingNL: Math.round(remainingNL * 10) / 10,
+    remainingPercent: Math.round(remainingPercent * 10) / 10,
+    estimatedRuntime: Math.round(estimatedRuntime),
+    status,
+  };
+}
 
-        expenses.push({ date, amount, desc, id: Date.now() });
-        document.getElementById('expenseDate').value = '';
-        document.getElementById('expenseAmount').value = '';
-        document.getElementById('expenseDesc').value = '';
+/**
+ * 計算公式說明
+ */
+export const FORMULA_EXPLANATION = `
+## MHCh-450L 氫氣存量計算公式
 
-        updateExpenseDisplay();
-    }
+### 基本原理
+金屬氫化物儲氫罐遵循 P-C-T (壓力-成分-溫度) 特性曲線。
 
-    function deleteExpense(id) {
-        expenses = expenses.filter(e => e.id !== id);
-        updateExpenseDisplay();
-    }
+### 計算步驟
+1. **壓力轉換**: P(MPaG) = P(psi) × 0.00689476，P(MPaA) = P(MPaG) + 0.1
+2. **P-C-T 查表**: 根據溫度選擇對應曲線，由壓力查得氫氣含量 (Ncc/g)
+3. **容量計算**: 
+   - 剩餘百分比 = (當前含量 / 最大含量) × 100%
+   - 剩餘容量 (NL) = 剩餘百分比 × 450 NL
+4. **運行時間**: 預估時間 = 剩餘容量 / 放電速率 (560 Ncc/min)
 
-    function updateExpenseDisplay() {
-        const listDiv = document.getElementById('expenseList');
-        listDiv.innerHTML = '';
+### 簡化公式
+對於 20°C 環境下的近似計算：
 
-        const sortedExpenses = [...expenses].sort((a, b) => new Date(a.date) - new Date(b.date));
+\`\`\`
+剩餘量 (NL) ≈ 450 × f(P)
+\`\`\`
 
-        sortedExpenses.forEach(exp => {
-            const item = document.createElement('div');
-            item.className = 'expense-item';
-            item.innerHTML = `
-                <div>
-                    <strong>${exp.desc}</strong><br>
-                    <span style="font-size: 0.85rem; color: #888;">${exp.date} | $ ${exp.amount}</span>
-                </div>
-                <button class="expense-delete" onclick="deleteExpense(${exp.id})">刪除</button>
-            `;
-            listDiv.appendChild(item);
-        });
+其中 f(P) 為壓力相關函數 (P 單位: psi):
+- P ≤ 15 psi: f(P) ≈ 0 ~ 0.1
+- 15 < P < 60 psi: f(P) ≈ 0.1 + (P - 15) × 0.017 (線性區)
+- P ≥ 60 psi: f(P) ≈ 0.85 ~ 1.0 (平台區)
 
-        const total = expenses.reduce((sum, e) => sum + e.amount, 0);
-        const days = new Set(expenses.map(e => e.date)).size || 1;
-        const avg = days > 0 ? Math.round(total / days) : 0;
+### 單位換算
+- 1 psi = 0.00689476 MPa
+- 滿瓶壓力 500 psi ≈ 3.45 MPa
 
-        document.getElementById('totalExpense').textContent = total.toLocaleString();
-        document.getElementById('avgExpense').textContent = avg.toLocaleString();
-        document.getElementById('expenseCount').textContent = expenses.length;
-    }
-
-    function clearAllExpenses() {
-        if (confirm('確定要清除所有記錄嗎？')) {
-            expenses = [];
-            updateExpenseDisplay();
-        }
-    }
-
-    // 初始化
-    document.addEventListener('DOMContentLoaded', () => {
-        updateExpenseDisplay();
-    });
-</script>
-
-</body>
-</html>
+### 注意事項
+- 低溫會降低平衡壓力，需要更高壓力才能釋放相同氫量
+- 溫度低於 20°C 時，可釋放的氫氣量會減少
+- 建議在 20~40°C 環境下使用以獲得最佳性能
+`;
