@@ -1,1 +1,420 @@
+import React, { useState, useEffect } from 'react';
+import { Gauge, Thermometer, Droplet, Clock, AlertTriangle, Info } from 'lucide-react';
 
+// P-C-T 曲線數據
+const PCT_CURVES = {
+  0: [
+    { pressure: 0.05, content: 5 },
+    { pressure: 0.08, content: 20 },
+    { pressure: 0.10, content: 50 },
+    { pressure: 0.12, content: 100 },
+    { pressure: 0.15, content: 150 },
+    { pressure: 0.20, content: 165 },
+    { pressure: 0.50, content: 170 },
+    { pressure: 1.00, content: 175 },
+  ],
+  10: [
+    { pressure: 0.08, content: 5 },
+    { pressure: 0.12, content: 20 },
+    { pressure: 0.15, content: 50 },
+    { pressure: 0.18, content: 100 },
+    { pressure: 0.25, content: 150 },
+    { pressure: 0.35, content: 165 },
+    { pressure: 0.60, content: 170 },
+    { pressure: 1.00, content: 175 },
+  ],
+  20: [
+    { pressure: 0.12, content: 5 },
+    { pressure: 0.18, content: 20 },
+    { pressure: 0.22, content: 50 },
+    { pressure: 0.28, content: 100 },
+    { pressure: 0.40, content: 150 },
+    { pressure: 0.55, content: 165 },
+    { pressure: 0.80, content: 170 },
+    { pressure: 1.00, content: 172 },
+  ],
+  30: [
+    { pressure: 0.20, content: 5 },
+    { pressure: 0.28, content: 20 },
+    { pressure: 0.35, content: 50 },
+    { pressure: 0.45, content: 100 },
+    { pressure: 0.60, content: 150 },
+    { pressure: 0.80, content: 165 },
+    { pressure: 1.00, content: 168 },
+    { pressure: 1.20, content: 170 },
+  ],
+  40: [
+    { pressure: 0.30, content: 5 },
+    { pressure: 0.42, content: 20 },
+    { pressure: 0.52, content: 50 },
+    { pressure: 0.68, content: 100 },
+    { pressure: 0.90, content: 150 },
+    { pressure: 1.10, content: 162 },
+    { pressure: 1.30, content: 165 },
+    { pressure: 1.50, content: 167 },
+  ],
+};
+
+const MHCH_450L_SPECS = {
+  model: 'MHCh-450L',
+  maxCapacity: 450,
+  maxPressure: 500,
+  minPressure: 0,
+  maxTemp: 40,
+  minTemp: 0,
+  typicalDischargeRate: 560,
+};
+
+const PSI_TO_MPA = 0.00689476;
+
+function linearInterpolate(x, x1, x2, y1, y2) {
+  return y1 + ((x - x1) * (y2 - y1)) / (x2 - x1);
+}
+
+function getContentFromPCT(pressureMPaA, curve) {
+  if (pressureMPaA <= curve[0].pressure) return curve[0].content;
+  if (pressureMPaA >= curve[curve.length - 1].pressure) return curve[curve.length - 1].content;
+
+  for (let i = 0; i < curve.length - 1; i++) {
+    if (pressureMPaA >= curve[i].pressure && pressureMPaA <= curve[i + 1].pressure) {
+      return linearInterpolate(
+        pressureMPaA,
+        curve[i].pressure,
+        curve[i + 1].pressure,
+        curve[i].content,
+        curve[i + 1].content
+      );
+    }
+  }
+  return 0;
+}
+
+function calculateHydrogenRemaining(pressurePSI, temperatureC) {
+  const minUsablePressure = 10; // 10psi 設為 0% 基準
+  
+  // 如果壓力低於或等於 10psi，直接返回 0
+  if (pressurePSI <= minUsablePressure) {
+    return {
+      remainingNL: 0,
+      remainingPercent: 0,
+      estimatedRuntime: 0,
+      status: 'critical',
+    };
+  }
+  
+  const pressureMPaG = pressurePSI * PSI_TO_MPA;
+  const pressureMPaA = pressureMPaG + 0.1;
+  const clampedTemp = Math.max(0, Math.min(40, temperatureC));
+
+  const temps = Object.keys(PCT_CURVES).map(Number).sort((a, b) => a - b);
+  let lowerTemp = temps[0];
+  let upperTemp = temps[temps.length - 1];
+
+  for (let i = 0; i < temps.length - 1; i++) {
+    if (clampedTemp >= temps[i] && clampedTemp <= temps[i + 1]) {
+      lowerTemp = temps[i];
+      upperTemp = temps[i + 1];
+      break;
+    }
+  }
+
+  const contentLower = getContentFromPCT(pressureMPaA, PCT_CURVES[lowerTemp]);
+  const contentUpper = getContentFromPCT(pressureMPaA, PCT_CURVES[upperTemp]);
+
+  let content;
+  if (lowerTemp === upperTemp) {
+    content = contentLower;
+  } else {
+    content = linearInterpolate(clampedTemp, lowerTemp, upperTemp, contentLower, contentUpper);
+  }
+
+  // 計算 10psi 時的含量作為基準（0%）
+  const minPressureMPaG = minUsablePressure * PSI_TO_MPA;
+  const minPressureMPaA = minPressureMPaG + 0.1;
+  
+  const minContentLower = getContentFromPCT(minPressureMPaA, PCT_CURVES[lowerTemp]);
+  const minContentUpper = getContentFromPCT(minPressureMPaA, PCT_CURVES[upperTemp]);
+  
+  let minContent;
+  if (lowerTemp === upperTemp) {
+    minContent = minContentLower;
+  } else {
+    minContent = linearInterpolate(clampedTemp, lowerTemp, upperTemp, minContentLower, minContentUpper);
+  }
+
+  const maxContent = 170;
+  
+  // 可用範圍：從 minContent (10psi) 到 maxContent (滿載)
+  const usableContent = content - minContent;
+  const maxUsableContent = maxContent - minContent;
+  
+  const remainingPercent = Math.max(0, Math.min(100, (usableContent / maxUsableContent) * 100));
+  const remainingNL = (remainingPercent / 100) * MHCH_450L_SPECS.maxCapacity;
+  const estimatedRuntime = (remainingNL * 1000) / MHCH_450L_SPECS.typicalDischargeRate;
+
+  let status;
+  if (remainingPercent >= 80) status = 'full';
+  else if (remainingPercent >= 40) status = 'normal';
+  else if (remainingPercent >= 15) status = 'low';
+  else status = 'critical';
+
+  return {
+    remainingNL: Math.round(remainingNL * 10) / 10,
+    remainingPercent: Math.round(remainingPercent * 10) / 10,
+    estimatedRuntime: Math.round(estimatedRuntime),
+    status,
+  };
+}
+
+export default function MHCh450LCalculator() {
+  const [pressure, setPressure] = useState(250);
+  const [temperature, setTemperature] = useState(20);
+  const [showInfo, setShowInfo] = useState(false);
+
+  const result = calculateHydrogenRemaining(pressure, temperature);
+
+  const getStatusColor = () => {
+    switch (result.status) {
+      case 'full': return 'from-green-500 to-emerald-600';
+      case 'normal': return 'from-blue-500 to-cyan-600';
+      case 'low': return 'from-yellow-500 to-orange-500';
+      case 'critical': return 'from-red-500 to-rose-600';
+      default: return 'from-gray-500 to-gray-600';
+    }
+  };
+
+  const getStatusText = () => {
+    switch (result.status) {
+      case 'full': return '充足';
+      case 'normal': return '正常';
+      case 'low': return '偏低';
+      case 'critical': return '嚴重不足';
+      default: return '未知';
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 p-4 md:p-8">
+      <div className="max-w-5xl mx-auto space-y-6">
+        
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <h1 className="text-4xl md:text-5xl font-bold text-white">MHCh-450L</h1>
+          <p className="text-xl text-blue-200">金屬氫化物儲氫罐存量計算器</p>
+          <div className="flex items-center justify-center gap-4 text-sm text-blue-300">
+            <span>最大容量: 450 NL</span>
+            <span>•</span>
+            <span>工作壓力: 0~500 psi</span>
+            <span>•</span>
+            <span>工作溫度: 0~40°C</span>
+          </div>
+        </div>
+
+        {/* Main Display */}
+        <div className={`bg-gradient-to-br ${getStatusColor()} rounded-3xl shadow-2xl p-8 text-white`}>
+          <div className="grid md:grid-cols-2 gap-8">
+            
+            {/* Left: Main Status */}
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm opacity-80 mb-1">剩餘氫氣量</p>
+                <div className="flex items-baseline gap-3">
+                  <span className="text-6xl font-bold">{result.remainingNL}</span>
+                  <span className="text-2xl opacity-90">NL</span>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm opacity-80 mb-1">剩餘百分比</p>
+                <div className="flex items-baseline gap-3">
+                  <span className="text-5xl font-bold">{result.remainingPercent}</span>
+                  <span className="text-2xl opacity-90">%</span>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div>
+                <div className="bg-white bg-opacity-20 rounded-full h-4 overflow-hidden">
+                  <div 
+                    className="bg-white h-full rounded-full transition-all duration-700 ease-out"
+                    style={{ width: `${result.remainingPercent}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs mt-2 opacity-75">
+                  <span>0%</span>
+                  <span>50%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Status & Runtime */}
+            <div className="space-y-6">
+              <div className="bg-white bg-opacity-15 rounded-2xl p-6 backdrop-blur-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <AlertTriangle className="w-6 h-6" />
+                  <span className="text-lg font-semibold">狀態</span>
+                </div>
+                <div className="text-3xl font-bold">{getStatusText()}</div>
+              </div>
+
+              <div className="bg-white bg-opacity-15 rounded-2xl p-6 backdrop-blur-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <Clock className="w-6 h-6" />
+                  <span className="text-lg font-semibold">預估運行時間</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold">{result.estimatedRuntime}</span>
+                  <span className="text-xl opacity-90">分鐘</span>
+                </div>
+                <p className="text-xs mt-2 opacity-75">基於 560 Ncc/min 放電速率</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Input Controls */}
+        <div className="grid md:grid-cols-2 gap-6">
+          
+          {/* Pressure Input */}
+          <div className="bg-white rounded-2xl shadow-xl p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <Gauge className="w-6 h-6 text-blue-600" />
+              <h3 className="text-xl font-bold text-gray-800">當前壓力</h3>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-baseline gap-3">
+                <input
+                  type="number"
+                  value={pressure}
+                  onChange={(e) => setPressure(Number(e.target.value))}
+                  className="w-full text-4xl font-bold text-center border-2 border-gray-200 rounded-xl p-4 focus:border-blue-500 focus:outline-none"
+                  min={0}
+                  max={500}
+                />
+                <span className="text-2xl text-gray-600 font-semibold">psi</span>
+              </div>
+              
+              <input
+                type="range"
+                value={pressure}
+                onChange={(e) => setPressure(Number(e.target.value))}
+                className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                min={0}
+                max={500}
+                step={5}
+              />
+              
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>10 psi (0%)</span>
+                <span>{pressure} psi</span>
+                <span>500 psi (100%)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Temperature Input */}
+          <div className="bg-white rounded-2xl shadow-xl p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <Thermometer className="w-6 h-6 text-red-600" />
+              <h3 className="text-xl font-bold text-gray-800">環境溫度</h3>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-baseline gap-3">
+                <input
+                  type="number"
+                  value={temperature}
+                  onChange={(e) => setTemperature(Number(e.target.value))}
+                  className="w-full text-4xl font-bold text-center border-2 border-gray-200 rounded-xl p-4 focus:border-red-500 focus:outline-none"
+                  min={0}
+                  max={40}
+                />
+                <span className="text-2xl text-gray-600 font-semibold">°C</span>
+              </div>
+              
+              <input
+                type="range"
+                value={temperature}
+                onChange={(e) => setTemperature(Number(e.target.value))}
+                className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                min={0}
+                max={40}
+                step={1}
+              />
+              
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>0°C</span>
+                <span>20°C</span>
+                <span>40°C</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Specification Info */}
+        <div className="bg-white rounded-2xl shadow-xl p-6">
+          <button
+            onClick={() => setShowInfo(!showInfo)}
+            className="w-full flex items-center justify-between text-left"
+          >
+            <div className="flex items-center gap-3">
+              <Info className="w-6 h-6 text-blue-600" />
+              <h3 className="text-xl font-bold text-gray-800">技術規格與計算說明</h3>
+            </div>
+            <span className="text-2xl text-gray-400">{showInfo ? '−' : '+'}</span>
+          </button>
+          
+          {showInfo && (
+            <div className="mt-6 space-y-4 text-gray-700 border-t pt-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold text-blue-600 mb-2">產品規格</h4>
+                  <ul className="space-y-1 text-sm">
+                    <li>• 型號: MHCh-450L</li>
+                    <li>• 儲氫材料: MmNiMnCo (AB5-type)</li>
+                    <li>• 最大容量: 450 NL</li>
+                    <li>• 工作壓力: 0 ~ 500 psi (0 ~ 3.45 MPa)</li>
+                    <li>• 工作溫度: 0 ~ 40°C</li>
+                    <li>• 典型放電速率: 560 Ncc/min</li>
+                    <li>• 重量: 4.7 kg</li>
+                    <li>• 尺寸: O.D.81 x L270 mm</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold text-blue-600 mb-2">計算原理</h4>
+                  <ul className="space-y-1 text-sm">
+                    <li>• 基於 P-C-T 特性曲線計算</li>
+                    <li>• 壓力轉換: P(MPaA) = P(psi) × 0.00689476 + 0.1</li>
+                    <li>• 依溫度與壓力查表得氫氣含量</li>
+                    <li>• <strong>10psi 為 0% 基準，500psi 為 100%</strong></li>
+                    <li>• 剩餘量 = (含量 - 10psi含量) / (最大含量 - 10psi含量) × 450 NL</li>
+                    <li>• 運行時間 = 剩餘量 / 放電速率</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 rounded-xl p-4 mt-4">
+                <h4 className="font-semibold text-blue-800 mb-2">使用注意事項</h4>
+                <ul className="space-y-1 text-sm text-blue-900">
+                  <li>• <strong>10psi 設為 0% 基準</strong>：低於 10psi 視為無可用氫氣</li>
+                  <li>• 低溫環境會降低可用氫氣量，建議在 20~40°C 使用</li>
+                  <li>• 實際運行時間會因放電速率而異</li>
+                  <li>• 剩餘量低於 15% 時建議儘快補充</li>
+                  <li>• 本計算器基於脫附曲線，實際性能可能略有差異</li>
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="text-center text-sm text-blue-200 opacity-75">
+          <p>MHCh-450L 金屬氫化物儲氫罐計算器 • 基於 P-C-T 特性曲線</p>
+        </div>
+      </div>
+    </div>
+  );
+}
